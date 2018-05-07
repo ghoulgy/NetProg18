@@ -5,28 +5,12 @@
  */
 package fdchat;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-
 
 class ChatThread extends Thread {
     Socket s;
@@ -41,53 +25,46 @@ class ChatThread extends Thread {
         this.pw = pw;    
     }
     
-    public void run() {
-//        System.out.print("Enter your msg to client: ");
-//        stdin = new BufferedReader(new InputStreamReader(System.in));
-                
-                // Send
-                Thread t1 = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        stdin = new BufferedReader(new InputStreamReader(System.in));
+    public void run() {                
+        // Send
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                stdin = new BufferedReader(new InputStreamReader(System.in));
 
-                        System.out.print("Enter your msg to Server: ");
-                        try {
-                            while((msg = stdin.readLine()) != null) {
-                                pw.println(msg);
-                                pw.flush();
-                                Thread.sleep(500);
-                            }
-                        } catch (Exception ex) {}
-                        
+                System.out.println("Enter your msg to Server: ");
+                try {
+                    while((msg = stdin.readLine()) != null) {
+                        pw.println("Server: " + msg);
+                        pw.flush();
+                        Thread.sleep(500);
                     }
-                });
-                t1.start();
-                                
-                // Rcv
-                Thread t2 = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            while((msg = br.readLine()) != null) {
-                                System.out.println(msg);
-//                                pw.println("Server: " + msg);
-//                                pw.flush();
-                                Thread.sleep(500);
-                            }
-                        } catch (Exception ex) {}
+                } catch (Exception ex) {}
+
+            }
+        });
+        t1.start();
+
+        // Rcv
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while((msg = br.readLine()) != null) {
+                        System.out.println(msg);
+                        Thread.sleep(500);
                     }
-                });
-                t2.start();
-                
-                while(true) {
-                    try {
-                        t1.join();
-                        t2.join();
-                    } catch (Exception e) {}
-                }
-                         
-            
+                } catch (Exception ex) {}
+            }
+        });
+        t2.start();
+
+        while(true) {
+            try {
+                t1.join();
+                t2.join();
+            } catch (Exception e) {}
+        }         
     }
 }
 /**
