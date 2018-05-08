@@ -25,34 +25,89 @@ class ClientHandler extends Thread {
     }
     
     public void run() {
-        String msgRcv = "";
+//        String msgRcv = "";
         
         // While Loop
-        do {
-            try {
-                
-                msgRcv = (String)din.readUTF();
-                System.out.println("Client: " + msgRcv);
-                
-                if(msgRcv.equals("Exit")) {
-                    System.out.println("Close...");
-                    break;
+//        do {
+//            try {
+//                
+////                msgRcv = (String)din.readUTF();
+//                System.out.println("Client: " + msgRcv);
+//                
+//                if(msgRcv.equals("Exit")) {
+//                    System.out.println("Close...");
+//                    break;
+//                }
+//                
+//                System.out.print("Please enter your message: ");
+//                String msg = input.nextLine();
+//                dout.writeUTF(msg);
+//                dout.flush();  
+//            } catch(Exception e) {}
+//            
+//        } while(!msgRcv.equals("Exit"));
+//        
+//        try {
+//            dout.close();
+//            din.close();
+//            ss.close();
+//        } catch(Exception e) {}
+        // While Loop
+        
+        // Loop FD
+        // Send
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String msg = "";
+                try {
+                    System.out.println("Please enter your message: ");
+                    do {
+                        msg = input.nextLine();
+                        dout.writeUTF(msg);
+                        dout.flush();  
+                    } while(!msg.equals("Exit"));
+                    System.out.println("Closing Server Thread...");
+                    closeConn();
+                } catch (Exception ex) {
+                    closeConn();
                 }
-                
-                System.out.print("Please enter your message: ");
-                String msg = input.nextLine();
-                dout.writeUTF(msg);
-                dout.flush();  
-            } catch(Exception e) {}
-            
-        } while(!msgRcv.equals("Exit"));
+            }
+        });
+        t1.start();
         
-        try {
-            dout.close();
-            din.close();
-            ss.close();
-        } catch(Exception e) {}
-        // While Loop
+        // Rcv
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String msgRcv = "";
+                    do {
+                        msgRcv = (String)din.readUTF();
+                        System.out.println("Client: " + msgRcv);
+                        
+                        if(msgRcv.equals("Exit")) {
+                            dout.writeUTF(msgRcv);
+                            dout.flush(); 
+                            break;
+                        }
+                    } while(true);
+                    System.out.println("Closing Server Thread...");
+                    closeConn();
+                } catch (IOException ex) {
+                    closeConn();
+                }
+            }
+        });
+        t2.start();
+        
+        while (true) {
+            try {
+                t1.join();
+                t2.join();
+            } catch(Exception e) {}
+        }
+        // Loop FD
         
 //        try {
 //            // Rcv
@@ -79,6 +134,14 @@ class ClientHandler extends Thread {
 //        } catch(Exception e) {
 //            e.printStackTrace();
 //        }
+    }
+    
+    public void closeConn() {
+        try {
+            din.close();
+            dout.close();
+            ss.close();
+        } catch(Exception e) {}
     }
 }
 

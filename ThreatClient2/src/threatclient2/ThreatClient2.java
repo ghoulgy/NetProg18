@@ -8,13 +8,15 @@ package threatclient2;
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author user
  */
 public class ThreatClient2 {
-
+    
     /**
      * @param args the command line arguments
      */
@@ -24,26 +26,83 @@ public class ThreatClient2 {
         Scanner input = new Scanner (System.in);
         DataOutputStream dout = new DataOutputStream(s.getOutputStream());
         DataInputStream din = new DataInputStream(s.getInputStream());
-        String str = "";
-        String msg = "";
+        boolean close = false;
+//        String str = "";
+//        String msg = "";
         
         // While Loop
-        do {
-            System.out.print("Please enter your message: ");
-            msg = input.nextLine();
-            dout.writeUTF(msg);
-            dout.flush();
-
-            try {
-                str =(String)din.readUTF();
-                if(str.equals("Exit")){
-                    break;
-                }
-                System.out.println("Server: " + str);
-            } catch (IOException e) {}
-
-        } while(!msg.equals("Exit"));
+//        do {
+//            System.out.print("Please enter your message: ");
+//            msg = input.nextLine();
+//            dout.writeUTF(msg);
+//            dout.flush();
+//
+//            try {
+//                str =(String)din.readUTF();
+//                if(str.equals("Exit")){
+//                    break;
+//                }
+//                System.out.println("Server: " + str);
+//            } catch (IOException e) {}
+//
+//        } while(!msg.equals("Exit"));
         // While Loop
+        
+        // FD Loop
+        // Send
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String msg = "";
+                boolean close = false;
+                try {
+                    System.out.println("Please enter your message: ");
+                    do {
+                        msg = input.nextLine();
+                        dout.writeUTF(msg);
+                        dout.flush();
+                    } while(!msg.equals("Exit"));
+//                    System.out.println("Closing Client...");
+//                    din.close();
+//                    dout.close();
+//                    s.close();
+//                    close = true;
+                } catch (Exception ex) {}
+            }
+        });
+        t1.start();
+        
+        // Rcv
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String str = "";
+                boolean close = false;
+                try {
+                    do {
+                        str =(String)din.readUTF();
+                        if(str.equals("Exit")){
+                            break;
+                        }
+                        System.out.println("Server: " + str);
+                    } while(!str.equals("Exit"));
+                    System.out.println("Closing Client...");
+                    din.close();
+                    dout.close();
+                    s.close();
+                    close = true;
+                } catch(Exception e) {}
+            }
+        });
+        t2.start();
+        
+        do {
+            t1.join();
+            t2.join();
+            close = true;
+        } while(!close);
+        
+        //FD Loop
         
 //        System.out.print("Please enter your message: ");
 //        String msg = input.nextLine();
@@ -73,10 +132,9 @@ public class ThreatClient2 {
             
 //        dout.writeUTF("Hola");
 //        dout.flush();
-        din.close();
-        dout.close();
-        s.close();	
-    }
-    
+//        din.close();
+//        dout.close();
+//        s.close();	
+    } 
 }
 
