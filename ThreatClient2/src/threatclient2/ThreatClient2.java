@@ -53,8 +53,7 @@ public class ThreatClient2 {
         Thread t1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                String msg = "";
-                boolean close = false;
+                String msg,str = "";
                 try {
                     System.out.println("Please enter your message: ");
                     do {
@@ -62,11 +61,6 @@ public class ThreatClient2 {
                         dout.writeUTF(msg);
                         dout.flush();
                     } while(!msg.equals("Exit"));
-//                    System.out.println("Closing Client...");
-//                    din.close();
-//                    dout.close();
-//                    s.close();
-//                    close = true;
                 } catch (Exception ex) {}
             }
         });
@@ -77,20 +71,16 @@ public class ThreatClient2 {
             @Override
             public void run() {
                 String str = "";
-                boolean close = false;
                 try {
                     do {
                         str =(String)din.readUTF();
                         if(str.equals("Exit")){
+                            dout.writeUTF("Exit");
+                            dout.flush();
                             break;
                         }
                         System.out.println("Server: " + str);
                     } while(!str.equals("Exit"));
-                    System.out.println("Closing Client...");
-                    din.close();
-                    dout.close();
-                    s.close();
-                    close = true;
                 } catch(Exception e) {}
             }
         });

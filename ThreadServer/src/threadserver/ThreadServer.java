@@ -17,6 +17,7 @@ class ClientHandler extends Thread {
     Scanner input = new Scanner (System.in);
     DataOutputStream dout;
     DataInputStream din;
+    Boolean close = false;
 
     public ClientHandler(Socket ss, DataInputStream din, DataOutputStream dout) {
         this.ss = ss;
@@ -60,15 +61,16 @@ class ClientHandler extends Thread {
             @Override
             public void run() {
                 String msg = "";
+                String msgRcv = "";
                 try {
                     System.out.println("Please enter your message: ");
                     do {
                         msg = input.nextLine();
                         dout.writeUTF(msg);
-                        dout.flush();  
+                        dout.flush();
                     } while(!msg.equals("Exit"));
-                    System.out.println("Closing Server Thread...");
-                    closeConn();
+//                    System.out.println("Closing Server Thread...");
+//                    closeConn();
                 } catch (Exception ex) {
                     closeConn();
                 }
@@ -91,9 +93,7 @@ class ClientHandler extends Thread {
                             dout.flush(); 
                             break;
                         }
-                    } while(true);
-                    System.out.println("Closing Server Thread...");
-                    closeConn();
+                    } while(!msgRcv.equals("Exit"));
                 } catch (IOException ex) {
                     closeConn();
                 }
@@ -101,12 +101,15 @@ class ClientHandler extends Thread {
         });
         t2.start();
         
-        while (true) {
-            try {
+        try {
+            do {               
                 t1.join();
                 t2.join();
-            } catch(Exception e) {}
-        }
+                close = true;  
+            } while(!close);
+        } catch(Exception e) {}
+        System.out.println("Closing Server Thread...");
+        closeConn();
         // Loop FD
         
 //        try {
